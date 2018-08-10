@@ -35,6 +35,7 @@ ifeq ($(strip $(AUDIO_ENABLE)), yes)
     MUSIC_ENABLE := 1
     SRC += $(QUANTUM_DIR)/process_keycode/process_audio.c
     SRC += $(QUANTUM_DIR)/process_keycode/process_clicky.c
+    COMMON_VPATH += $(DRIVER_PATH)
     ifeq ($(PLATFORM),AVR)
         SRC += $(QUANTUM_DIR)/audio/audio.c
     else
@@ -117,7 +118,7 @@ endif
 ifeq ($(strip $(RGB_MATRIX_ENABLE)), yes)
     OPT_DEFS += -DRGB_MATRIX_ENABLE
     SRC += is31fl3731.c
-    SRC += i2c_master.c
+    SRC += twi2c.c
     SRC += $(QUANTUM_DIR)/color.c
     SRC += $(QUANTUM_DIR)/rgb_matrix.c
     CIE1931_CURVE = yes

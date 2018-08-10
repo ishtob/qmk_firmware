@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Jack Humbert
+/* Copyright 2015-2018 Jack Humbert
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@
 #define CUSTOM_MATRIX 2 /* Disables built-in matrix scanning code */
 
 #ifdef __AVR__
-  #define LINE_TYPE uint8_t
 
   /* I/O pins */
   #ifndef F0
@@ -76,11 +75,9 @@
       #define A6 0x06
       #define A7 0x07
   #endif
-#else
-  #include "hal.h"
 
-// GPIO line definition for STM32, currently support A0-15, B0-15, C0-15, D0-15, E0-15, and F0-15.
-  #define LINE_TYPE ioline_t
+
+#elif defined(__arm__)
 
   #define A0  PAL_LINE(GPIOA, 0)
   #define A1  PAL_LINE(GPIOA, 1)
@@ -179,10 +176,6 @@
   #define F14 PAL_LINE(GPIOF, 14)
   #define F15 PAL_LINE(GPIOF, 15)
 
-  #define setPadMode(line, mode) palSetPadMode(PAL_PORT(line), PAL_PAD(line), mode)
-  #define setPad(line) palSetPad(PAL_PORT(line), PAL_PAD(line))
-  #define clearPad(line) palClearPad(PAL_PORT(line), PAL_PAD(line))
-  #define readPad(line) palReadPad(PAL_PORT(line), PAL_PAD(line))
 #endif
 
 
