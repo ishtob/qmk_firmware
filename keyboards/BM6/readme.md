@@ -1,16 +1,16 @@
-Planck
+BM6
 ===
 
-![Planck](http://i.imgur.com/q2M3uEU.jpg)
+![BM6](https://i.imgur.com/fgc1Mca.jpg)
 
-A compact 40% (12x4) ortholinear keyboard kit made and sold by OLKB and Massdrop. [More info on qmk.fm](http://qmk.fm/planck/)
+A 2x6 macropad made to be used a the thumb cluster of handwired builds split ergo builds.
 
-Keyboard Maintainer: [Jack Humbert](https://github.com/jackhumbert)
-Hardware Supported: Planck PCB rev1, rev2, rev3, rev4, Teensy 2.0
-Hardware Availability: [OLKB.com](https://olkb.com), [Massdrop](https://www.massdrop.com/buy/planck-mechanical-keyboard?mode=guest_open)
+Vesrion 1 was built specifically for the 2018 Boston MK group meetup.
+
+Keyboard Maintainer: [Jishtob](https://github.com/ishtob)
 
 Make example for this keyboard (after setting up your build environment):
 
-    make planck/rev4:default
+    make BM6:default
 
 See [build environment setup](https://docs.qmk.fm/build_environment_setup.html) then the [make instructions](https://docs.qmk.fm/make_instructions.html) for more information.
