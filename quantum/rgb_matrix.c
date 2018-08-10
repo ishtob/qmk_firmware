@@ -17,14 +17,14 @@
 
 
 #include "rgb_matrix.h"
-#include <avr/io.h>
-#include "i2c_master.h"
-#include <util/delay.h>
-#include <avr/interrupt.h>
+//#include <avr/io.h>
+#include "twi2c.h"
+#include "wait.h"
+//#include <avr/interrupt.h>
 #include "progmem.h"
 #include "config.h"
 #include "eeprom.h"
-#include "lufa.h"
+//#include "lufa.h"
 #include <math.h>
 
 rgb_config_t rgb_matrix_config;
@@ -39,10 +39,6 @@ rgb_config_t rgb_matrix_config;
 
 #ifndef EECONFIG_RGB_MATRIX
     #define EECONFIG_RGB_MATRIX EECONFIG_RGBLIGHT
-#endif
-
-#if !defined(RGB_MATRIX_MAXIMUM_BRIGHTNESS) || RGB_MATRIX_MAXIMUM_BRIGHTNESS > 255
-    #define RGB_MATRIX_MAXIMUM_BRIGHTNESS 255
 #endif
 
 bool g_suspend_state = false;
@@ -72,7 +68,7 @@ void eeconfig_update_rgb_matrix_default(void) {
   rgb_matrix_config.mode = RGB_MATRIX_CYCLE_LEFT_RIGHT;
   rgb_matrix_config.hue = 0;
   rgb_matrix_config.sat = 255;
-  rgb_matrix_config.val = RGB_MATRIX_MAXIMUM_BRIGHTNESS;
+  rgb_matrix_config.val = 255;
   rgb_matrix_config.speed = 0;
   eeconfig_update_rgb_matrix(rgb_matrix_config.raw);
 }
@@ -105,6 +101,7 @@ void map_row_column_to_led( uint8_t row, uint8_t column, uint8_t *led_i, uint8_t
     }
 }
 
+
 void rgb_matrix_update_pwm_buffers(void) {
     IS31FL3731_update_pwm_buffers( DRIVER_ADDR_1, DRIVER_ADDR_2 );
     IS31FL3731_update_led_control_registers( DRIVER_ADDR_1, DRIVER_ADDR_2 );
@@ -117,6 +114,7 @@ void rgb_matrix_set_color( int index, uint8_t red, uint8_t green, uint8_t blue )
 void rgb_matrix_set_color_all( uint8_t red, uint8_t green, uint8_t blue ) {
     IS31FL3731_set_color_all( red, green, blue );
 }
+
 
 bool process_rgb_matrix(uint16_t keycode, keyrecord_t *record) {
     if ( record->event.pressed ) {
@@ -151,9 +149,8 @@ void rgb_matrix_set_suspend_state(bool state) {
 
 void rgb_matrix_test(void) {
     // Mask out bits 4 and 5
-    // Increase the factor to make the test animation slower (and reduce to make it faster)
-    uint8_t factor = 10;
-    switch ( (g_tick & (0b11 << factor)) >> factor )
+    // This 2-bit value will stay the same for 16 ticks.
+    switch ( (g_tick & 0x30) >> 4 )
     {
         case 0:
         {
@@ -232,16 +229,16 @@ void rgb_matrix_solid_color(void) {
 }
 
 void rgb_matrix_solid_reactive(void) {
-	// Relies on hue being 8-bit and wrapping
-	for ( int i=0; i<DRIVER_LED_TOTAL; i++ )
-	{
-		uint16_t offset2 = g_key_hit[i]<<2;
-		offset2 = (offset2<=130) ? (130-offset2) : 0;
+    // Relies on hue being 8-bit and wrapping
+    for ( int i=0; i<DRIVER_LED_TOTAL; i++ )
+    {
+        uint16_t offset2 = g_key_hit[i]<<2;
+        offset2 = (offset2<=130) ? (130-offset2) : 0;
 
-		HSV hsv = { .h = rgb_matrix_config.hue+offset2, .s = 255, .v = rgb_matrix_config.val };
-		RGB rgb = hsv_to_rgb( hsv );
-		rgb_matrix_set_color( i, rgb.r, rgb.g, rgb.b );
-	}
+        HSV hsv = { .h = rgb_matrix_config.hue+offset2, .s = 255, .v = rgb_matrix_config.val };
+        RGB rgb = hsv_to_rgb( hsv );
+        rgb_matrix_set_color( i, rgb.r, rgb.g, rgb.b );
+    }
 }
 
 // alphas = color1, mods = color2
@@ -581,10 +578,10 @@ void rgb_matrix_custom(void) {
 
 void rgb_matrix_task(void) {
     static uint8_t toggle_enable_last = 255;
-	if (!rgb_matrix_config.enable) {
-    	rgb_matrix_all_off();
+    if (!rgb_matrix_config.enable) {
+        rgb_matrix_all_off();
         toggle_enable_last = rgb_matrix_config.enable;
-    	return;
+        return;
     }
     // delay 1 second before driving LEDs or doing anything else
     static uint8_t startup_tick = 0;
@@ -724,44 +721,40 @@ void rgb_matrix_indicators_user(void) {}
 //  }
 // }
 
-void rgb_matrix_init(void) {
-  rgb_matrix_setup_drivers();
+void rgb_matrix_init_drivers(void) {
+    // Initialize TWI
+    twi2c_init();
+    IS31FL3731_init( DRIVER_ADDR_1 );
+    IS31FL3731_init( DRIVER_ADDR_2 );
 
-  // TODO: put the 1 second startup delay here?
+    for ( int index = 0; index < DRIVER_LED_TOTAL; index++ ) {
+        bool enabled = true;
+        // This only caches it for later
+        IS31FL3731_set_led_control_register( index, enabled, enabled, enabled );
+    }
+    // This actually updates the LED drivers
+    IS31FL3731_update_led_control_registers( DRIVER_ADDR_1, DRIVER_ADDR_2 );
 
-  // clear the key hits
-  for ( int led=0; led<DRIVER_LED_TOTAL; led++ ) {
-      g_key_hit[led] = 255;
-  }
+    // TODO: put the 1 second startup delay here?
+
+    // clear the key hits
+    for ( int led=0; led<DRIVER_LED_TOTAL; led++ ) {
+        g_key_hit[led] = 255;
+    }
 
 
-  if (!eeconfig_is_enabled()) {
-      dprintf("rgb_matrix_init_drivers eeconfig is not enabled.\n");
-      eeconfig_init();
-      eeconfig_update_rgb_matrix_default();
-  }
-  rgb_matrix_config.raw = eeconfig_read_rgb_matrix();
-  if (!rgb_matrix_config.mode) {
-      dprintf("rgb_matrix_init_drivers rgb_matrix_config.mode = 0. Write default values to EEPROM.\n");
-      eeconfig_update_rgb_matrix_default();
-      rgb_matrix_config.raw = eeconfig_read_rgb_matrix();
-  }
-  eeconfig_debug_rgb_matrix(); // display current eeprom values
-}
-
-void rgb_matrix_setup_drivers(void) {
-  // Initialize TWI
-  i2c_init();
-  IS31FL3731_init( DRIVER_ADDR_1 );
-  IS31FL3731_init( DRIVER_ADDR_2 );
-
-  for ( int index = 0; index < DRIVER_LED_TOTAL; index++ ) {
-    bool enabled = true;
-    // This only caches it for later
-    IS31FL3731_set_led_control_register( index, enabled, enabled, enabled );
-  }
-  // This actually updates the LED drivers
-  IS31FL3731_update_led_control_registers( DRIVER_ADDR_1, DRIVER_ADDR_2 );
+    if (!eeconfig_is_enabled()) {
+        dprintf("rgb_matrix_init_drivers eeconfig is not enabled.\n");
+        eeconfig_init();
+        eeconfig_update_rgb_matrix_default();
+    }
+    rgb_matrix_config.raw = eeconfig_read_rgb_matrix();
+    if (!rgb_matrix_config.mode) {
+        dprintf("rgb_matrix_init_drivers rgb_matrix_config.mode = 0. Write default values to EEPROM.\n");
+        eeconfig_update_rgb_matrix_default();
+        rgb_matrix_config.raw = eeconfig_read_rgb_matrix();
+    }
+    eeconfig_debug_rgb_matrix(); // display current eeprom values
 }
 
 // Deals with the messy details of incrementing an integer
@@ -825,7 +818,7 @@ uint32_t rgb_matrix_get_tick(void) {
 }
 
 void rgblight_toggle(void) {
-	rgb_matrix_config.enable ^= 1;
+    rgb_matrix_config.enable ^= 1;
     eeconfig_update_rgb_matrix(rgb_matrix_config.raw);
 }
 
@@ -864,12 +857,12 @@ void rgblight_decrease_sat(void) {
 }
 
 void rgblight_increase_val(void) {
-    rgb_matrix_config.val = increment( rgb_matrix_config.val, 8, 0, RGB_MATRIX_MAXIMUM_BRIGHTNESS );
+    rgb_matrix_config.val = increment( rgb_matrix_config.val, 8, 0, 255 );
     eeconfig_update_rgb_matrix(rgb_matrix_config.raw);
 }
 
 void rgblight_decrease_val(void) {
-    rgb_matrix_config.val = decrement( rgb_matrix_config.val, 8, 0, RGB_MATRIX_MAXIMUM_BRIGHTNESS );
+    rgb_matrix_config.val = decrement( rgb_matrix_config.val, 8, 0, 255 );
     eeconfig_update_rgb_matrix(rgb_matrix_config.raw);
 }
 

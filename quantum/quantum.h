@@ -33,15 +33,9 @@
 #ifdef RGBLIGHT_ENABLE
   #include "rgblight.h"
 #endif
-
-#ifdef SPLIT_KEYBOARD
-    #include "split_flags.h"
-#endif
-
 #ifdef RGB_MATRIX_ENABLE
 	#include "rgb_matrix.h"
 #endif
-
 #include "action_layer.h"
 #include "eeconfig.h"
 #include <stddef.h>
@@ -53,7 +47,6 @@
 #include <stdlib.h>
 #include "print.h"
 #include "send_string_keycodes.h"
-#include "suspend.h"
 
 extern uint32_t default_layer_state;
 
@@ -128,8 +121,9 @@ extern uint32_t default_layer_state;
 	#include "process_terminal_nop.h"
 #endif
 
-#ifdef HD44780_ENABLE
-	#include "hd44780.h"
+#ifndef MIN
+  #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+  #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #endif
 
 #define STRINGIZE(z) #z
