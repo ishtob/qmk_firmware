@@ -18,6 +18,30 @@
 #include "action_layer.h"
 #include "matrix.h"
 #include "haptic.h"
+#include "rgblight.h"
+
+const rgb_led g_rgb_leds[DRIVER_LED_TOTAL] = {
+  /*{row | col << 4}
+    |             {x=0..224, y=0..64}
+    |              |         modifier
+    |              |         | */
+  {{1|(13<<4)},   {195, 3},  0},
+  {{4|(13<<4)},   {195, 16}, 0},
+  {{4|(10<<4)},   {150, 16}, 0},
+  {{4|(7<<4)},    {105, 16}, 0},
+  {{4|(4<<4)},    {60,  16}, 0},
+  {{4|(1<<4)},    {15,  16}, 0},
+  {{1|(1<<4)},    {15,  3},  0},
+  {{1|(4<<4)},    {60,  3},  0},
+  {{1|(7<<4)},    {105, 3},  0},
+  {{1|(10<<4)},   {150, 3},  0}
+};
+
+uint8_t *o_fb;
+
+uint16_t counterst = 0;
+
+
 
 #ifdef QWIIC_MICRO_OLED_ENABLE
 
@@ -184,5 +208,10 @@ if (queue_for_send) {
   send_command(DISPLAYOFF);      /* 0xAE */
   }
 #endif
+  if (counterst == 0) {
+    //testPatternFB(o_fb);
+  }
+  counterst = (counterst + 1) % 1024;
+  //rgblight_task();
 	matrix_scan_user();
 }

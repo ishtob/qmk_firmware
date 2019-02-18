@@ -92,7 +92,7 @@ void eeconfig_update_rgb_matrix_default(void) {
   rgb_matrix_config.hue = 0;
   rgb_matrix_config.sat = 255;
   rgb_matrix_config.val = RGB_MATRIX_MAXIMUM_BRIGHTNESS;
-  rgb_matrix_config.speed = 0;
+  rgb_matrix_config.speed = 1;
   eeconfig_update_rgb_matrix(rgb_matrix_config.raw);
 }
 void eeconfig_debug_rgb_matrix(void) {
@@ -626,6 +626,9 @@ void rgb_matrix_custom(void) {
 //     }
 }
 
+static uint8_t tick_slower = 5;
+static uint8_t tick_counter = 0;
+
 void rgb_matrix_task(void) {
   #ifdef TRACK_PREVIOUS_EFFECT
       static uint8_t toggle_enable_last = 255;
@@ -645,7 +648,11 @@ void rgb_matrix_task(void) {
         return;
     }
 
-    g_tick++;
+    if (tick_counter == 0) {
+        g_tick++;
+    }
+    tick_counter = ( tick_counter + 1) % tick_slower;
+
 
     if ( g_any_key_hit < 0xFFFFFFFF ) {
         g_any_key_hit++;

@@ -20,8 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIGHT_WS2812_H_
-#define LIGHT_WS2812_H_
+#pragma once
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -30,6 +29,10 @@
 
 #include "rgblight_types.h"
 
+void WS2812_init(void);
+void WS2812_set_color( int index, uint8_t red, uint8_t green, uint8_t blue );
+void WS2812_set_color_all( uint8_t red, uint8_t green, uint8_t blue );
+void WS2812_send_colors(void);
 
 /* User Interface
  *

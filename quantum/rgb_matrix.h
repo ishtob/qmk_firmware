@@ -28,6 +28,8 @@
     #include "is31fl3731.h"
 #elif defined (IS31FL3733)
     #include "is31fl3733.h"
+ #elif defined (WS2812)
+    #include "ws2812.h"
 #endif
 
 typedef struct Point {

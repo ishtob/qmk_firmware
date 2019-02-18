@@ -80,3 +80,14 @@ const rgb_matrix_driver_t rgb_matrix_driver = {
 #endif
 
 #endif
+
+ #if defined(WS2812)
+
+const rgb_matrix_driver_t rgb_matrix_driver = {
+    .init = WS2812_init,
+    .flush = WS2812_send_colors,
+    .set_color = WS2812_set_color,
+    .set_color_all = WS2812_set_color_all,
+};
+
+#endif

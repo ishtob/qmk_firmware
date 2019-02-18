@@ -114,7 +114,7 @@ ifeq ($(strip $(RGBLIGHT_ENABLE)), yes)
     endif
 endif
 
-VALID_MATRIX_TYPES := yes IS31FL3731 IS31FL3733 custom
+VALID_MATRIX_TYPES := yes IS31FL3731 IS31FL3733 WS2812 custom
 
 LED_MATRIX_ENABLE ?= no
 ifneq ($(strip $(LED_MATRIX_ENABLE)), no)
@@ -151,6 +151,7 @@ ifeq ($(strip $(RGB_MATRIX_ENABLE)), yes)
 endif
 
 ifeq ($(strip $(RGB_MATRIX_ENABLE)), IS31FL3731)
+    OPT_DEFS += -DRGB_MATRIX_ENABLE
     OPT_DEFS += -DIS31FL3731
     COMMON_VPATH += $(DRIVER_PATH)/issi
     SRC += is31fl3731.c
@@ -158,10 +159,17 @@ ifeq ($(strip $(RGB_MATRIX_ENABLE)), IS31FL3731)
 endif
 
 ifeq ($(strip $(RGB_MATRIX_ENABLE)), IS31FL3733)
+    OPT_DEFS += -DRGB_MATRIX_ENABLE
     OPT_DEFS += -DIS31FL3733
     COMMON_VPATH += $(DRIVER_PATH)/issi
     SRC += is31fl3733.c
     SRC += i2c_master.c
+endif
+
+ ifeq ($(strip $(RGB_MATRIX_ENABLE)), WS2812)
+    OPT_DEFS += -DRGB_MATRIX_ENABLE
+    OPT_DEFS += -DWS2812
+    SRC += ws2812.c
 endif
 
 ifeq ($(strip $(TAP_DANCE_ENABLE)), yes)
