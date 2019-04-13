@@ -65,7 +65,7 @@ void draw_ui(void) {
   send_command(DISPLAYON);
 
 /* Layer indicator is 41 x 10 pixels */
-#define LAYER_INDICATOR_X 0
+#define LAYER_INDICATOR_X 5
 #define LAYER_INDICATOR_Y 0 
 
   draw_string(LAYER_INDICATOR_X + 1, LAYER_INDICATOR_Y + 2, "LAYER", PIXEL_ON, NORM, 0);
@@ -73,7 +73,7 @@ void draw_ui(void) {
   draw_char(LAYER_INDICATOR_X + 34, LAYER_INDICATOR_Y + 2, layer + 0x30, PIXEL_ON, XOR, 0);
 
 /* Matrix display is 19 x 9 pixels */
-#define MATRIX_DISPLAY_X 0
+#define MATRIX_DISPLAY_X 5
 #define MATRIX_DISPLAY_Y 18
 
   for (uint8_t x = 0; x < MATRIX_ROWS; x++) {
