@@ -1,6 +1,4 @@
-# Hadron
-
-![Boston Meetup Macropads]
+# Boston Meetup Macropads
  
 Limited run boards designed for Boston MK community meetups.
 
