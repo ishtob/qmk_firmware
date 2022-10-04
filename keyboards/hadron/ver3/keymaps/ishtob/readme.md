@@ -1,2 +1,2 @@
-# The Default Hadron Layout
+# Ishtob's personal Hadron Layout
 
